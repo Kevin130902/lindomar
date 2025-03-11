@@ -12,6 +12,7 @@ export default function Home() {
     const token = localStorage.getItem('token')
     const [professorSelecionado, setProfessorSelecionado] = useState(null)
     const [texto, setTexto] = useState('')
+    const [up, setUp] = useState(false)
 
     useEffect(() => {
 
@@ -32,7 +33,7 @@ export default function Home() {
         };
 
         fetchData();
-    }, []);
+    }, [up]);
 
     const atualizar = async (professorSelecionado) => {
         try {
@@ -172,9 +173,8 @@ export default function Home() {
                         isOpen={modalOpen}
                         onClose={() => setModalOpen(false)}
                         professorSelecionado={professorSelecionado}
-                        setProfessorSelecionado={setProfessorSelecionado}
-                        criar={criar}
-                        atualizar={atualizar}
+                        up={up}
+                        setUp={setUp}
                     />
 
                 </section>
