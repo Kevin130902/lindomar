@@ -11,6 +11,16 @@ interface Professor {
 
 type ProfessoresResponse = Professor[];
 
+interface Disciplina {
+    id: number;
+    sigla: string;
+    curso: string;
+    semestre: number;
+    carga_horaria: number;
+}
+
+type DisciplinasResponse = Disciplina[];
+
 interface LoginResponse {
     refresh: string;
     access: string;

@@ -4,33 +4,30 @@ import { createPortal } from "react-dom";
 const ModalContext = createContext<{ isOpen: boolean; toggle: (v?: boolean) => void }>(undefined!);
 
 export function useModal() {
-    return useContext(ModalContext).toggle;
-}
-
-function ModalInner() {
-    const { toggle } = useContext(ModalContext);
-
-    return (
-        <div style={{ padding: "4em 1em" }} className="bg-black/50 w-[100%] h-[100%]">
-            <div className="max-w-[800px] h-[100%] bg-white rounded-md" style={{ padding: "2em", margin: "0 auto" }}>
-                <button style={{ marginBottom: "1em" }} className="cursor-pointer text-end" onClick={() => toggle(false)}>Fechar</button>
-                <div id="modal-children"></div>
-            </div>
-        </div>
-    );
+    return useContext(ModalContext);
 }
 
 export function Modal({ children }: React.PropsWithChildren) {
-    const childrenContainer = document.getElementById("modal-children");
+    const { isOpen, toggle } = useContext(ModalContext);
 
-    return <>{childrenContainer && createPortal(children, childrenContainer)}</>;
+    const el = (
+        <div className="absolute w-screen h-screen">
+            <div style={{ padding: "4em 1em" }} className="bg-black/50 w-[100%] h-[100%]">
+                <div className="max-w-[800px] bg-white rounded-md" style={{ padding: "2em", margin: "0 auto" }}>
+                    <button style={{ marginBottom: "1em" }} className="cursor-pointer text-end" onClick={() => toggle(false)}>Fechar</button>
+                    <div style={{ margin: "0 auto" }}>{children}</div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const container = document.getElementById("modal-container");
+
+    return <>{container && isOpen && createPortal(el, container)}</>;
 }
 
 export function ModalRenderer() {
-    const { isOpen } = useContext(ModalContext);
-    const className = "absolute w-screen " + (isOpen ? "h-screen" : "");
-
-    return <div id="modal-renderer" className={className}>{isOpen && <ModalInner />}</div>;
+    return <div id="modal-container"></div>;
 }
 
 export function ModalProvider({ children }: React.PropsWithChildren) {

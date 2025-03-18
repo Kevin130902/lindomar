@@ -3,9 +3,8 @@ import { useNavigate } from "react-router";
 
 import { API_URL } from "../constants";
 
-function TextBox({ name, hidden = false }: { name: string; hidden?: boolean }) {
-    return <div><input type={hidden ? "password" : "text"} className="bg-gray-200" style={{ padding: "6px", marginBottom: "1em" }} id={name} name={name} /></div>;
-}
+import { Button } from "../components/Button";
+import { TextBox } from "../components/TextBox";
 
 export function LoginPage() {
     const navigate = useNavigate();
@@ -39,7 +38,7 @@ export function LoginPage() {
                     <TextBox name="user" />
                     <TextBox name="pass" hidden />
 
-                    <button style={{ padding: "2px 8px" }} className="cursor-pointer text-lg text-white bg-blue-950" type="submit">Entrar</button>
+                    <Button text="Entrar" />
                 </form>
             </div>
         </div>
