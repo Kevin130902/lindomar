@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import axios, { AxiosResponse } from "axios";
 
-const API_URL = "http://localhost:8000/api/";
+import { Modal, useModal } from "../components/Modal";
+
+import { useToken } from "../hooks/use-token";
+
+import { API_URL } from "../constants";
 
 const EDITABLE_MAP = {
     professores: ["Nome", "E-mail", "Cel", "NI", "Ocupação"],
@@ -21,6 +25,8 @@ function ArrowButton({ right = false as never, onClick }: { right?: true, onClic
 }
 
 function EditList({ titles, content }: { titles: string[], content: EditEntry[] }) {
+    const toggleModal = useModal();
+
     return (
         <table className="table-fixed w-full border-[1px]">
             <thead>
@@ -36,7 +42,7 @@ function EditList({ titles, content }: { titles: string[], content: EditEntry[] 
                             {[
                                 ...values.map((v, i) => <td key={`child_${i}`} className="text-center">{v}</td>),
                                 <td key="edit" className="flex gap-[14px] justify-center">
-                                    <button className="cursor-pointer text-blue-800">Editar</button>
+                                    <button className="cursor-pointer text-blue-800" onClick={() => toggleModal()}>Editar</button>
                                     <button className="cursor-pointer text-red-800">Deletar</button>
                                 </td>
                             ]}
@@ -55,7 +61,7 @@ export function HomePage() {
     const [table, setTable] = useState<EditEntry[]>([]);
 
     const selectedSection = sections[cursor];
-    const token = localStorage.getItem("token");
+    const token = useToken();
 
     useEffect(() => {
         if (!token) return;
@@ -79,8 +85,14 @@ export function HomePage() {
             .catch(() => setTable([]));
     }, [selectedSection]);
 
+    console.log("UPDATE");
+
     return (
         <>
+            <Modal>
+                <h1>AAAAAAAAAA</h1>
+            </Modal>
+
             <div style={{ display: "flex", marginBottom: "2em" }}>
                 <ArrowButton onClick={() => setCursor((n) => Math.max(n - 1, 0))} />
                 <h1 className="text-center w-[160px]">{selectedSection}</h1>

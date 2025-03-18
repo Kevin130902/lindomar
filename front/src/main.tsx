@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router';
 
 import './base.css';
 
+import { useToken } from './hooks/use-token';
+
 import { Layout } from './layout';
 
 import { HomePage } from './pages/home';
@@ -10,7 +12,7 @@ import { LoginPage } from './pages/login';
 import { NotFoundPage } from './pages/404';
 
 function AuthRoute() {
-  if (localStorage.getItem("token") !== null) {
+  if (useToken()) {
     return <Outlet />;
   }
 

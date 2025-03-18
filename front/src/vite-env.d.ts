@@ -10,3 +10,8 @@ interface Professor {
 }
 
 type ProfessoresResponse = Professor[];
+
+interface LoginResponse {
+    refresh: string;
+    access: string;
+}
