@@ -13,6 +13,9 @@ import { TextBox } from "../components/TextBox";
 const EDITABLE_MAP = {
     professores: ["Nome", "E-mail", "Cel", "NI", "Ocupação"],
     disciplinas: ["Sigla", "Curso", "Semestre", "Carga Horária"],
+    turma: ["Nome"],
+    curso: ["Curso", "Tipo", "Hora de Aula", "Sigla"],
+    ambiente: ["Sala", "Capacidade", "Responsável", "Período"],
 } satisfies { [key: string]: string[] }
 
 type EditableCategory = keyof typeof EDITABLE_MAP;
@@ -22,16 +25,22 @@ interface TableEntry {
     values: string[];
 }
 
+function bearer(token: string) {
+    return "Bearer " + token;
+}
+
 function ArrowButton({ right = false as never, onClick }: { right?: true, onClick: () => void }) {
     return <button className="cursor-pointer w-[30px]" onClick={onClick} style={{ margin: "0 0.5em" }}>{right ? ">" : "<"}</button>;
 }
 
-function TableView({ titles, content, onEntryClick }: { titles: string[], content: TableEntry[]; onEntryClick: (entry: TableEntry) => void; }) {
-    const token = useToken();
+function TableView(
+    { titles, content, onEdit, onDelete }: { titles: string[], content: TableEntry[]; onEdit: (entry: TableEntry) => void; onDelete: (entry: TableEntry) => void; }
+) {
+    // const token = useToken();
     const { toggle: toggleModal } = useModal();
 
     return (
-        <table className="table-fixed w-full border-[1px]">
+        <table className="table-auto w-full border-[1px]">
             <thead>
                 <tr className="bg-zinc-600">
                     {...titles.map((title) => <th className="text-white">{title}</th>)}
@@ -48,19 +57,15 @@ function TableView({ titles, content, onEntryClick }: { titles: string[], conten
                                     <button
                                         className="cursor-pointer text-blue-800"
                                         onClick={() => {
-                                            onEntryClick(entry);
-                                            toggleModal();
+                                            onEdit(entry);
+                                            toggleModal(false);
                                         }}
                                     >
                                         Editar
                                     </button>
                                     <button
                                         className="cursor-pointer text-red-800"
-                                        onClick={() => {
-                                            if (window.confirm("Tem certeza?")) {
-                                                axios.delete(API_URL + "id/" + entry.id, { headers: { Authorization: `Bearer ${token}` } });
-                                            }
-                                        }}
+                                        onClick={() => onDelete(entry)}
                                     >
                                         Deletar
                                     </button>
@@ -83,27 +88,46 @@ export function HomePage() {
     const [modalFields, setModalFields] = useState<string[]>([]);
     const [selectedEntry, setSelectedEntry] = useState<TableEntry>();
 
-    const selectedSection = sections[cursor];
     const token = useToken();
+    const selectedSection = sections[cursor];
+    const baseUrl = `${API_URL}${selectedSection}`;
 
     useEffect(() => {
         if (selectedSection === "professores") {
             setModalFields(["nome", "email", "cel", "ni", "ocup"]);
         } else if (selectedSection === "disciplinas") {
             setModalFields(["sigla", "curso", "semestre", "carga_horaria"]);
+        } else if (selectedSection === "turma") {
+            setModalFields(["nome"]);
+        } else if (selectedSection === "curso") {
+            setModalFields(["curso", "tipo", "hora_aula", "sigla"]);
+        } else if (selectedSection === "ambiente") {
+            setModalFields(["sala", "capacidade", "responsavel", "periodo"]);
         }
 
         if (!token) return;
 
-        axios.get(API_URL + selectedSection, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(API_URL + selectedSection, { headers: { Authorization: bearer(token) } })
             .then((res) => {
                 if (selectedSection === "professores") {
                     return (res as AxiosResponse<ProfessoresResponse>).data.map(
-                        (prof) => ({ id: prof.id, values: [prof.nome, prof.email, prof.cel, prof.ni, String(prof.ocup)] }),
+                        (x) => ({ id: x.id, values: [x.nome, x.email, x.cel, x.ni, String(x.ocup)] }),
                     );
                 } else if (selectedSection === "disciplinas") {
                     return (res as AxiosResponse<DisciplinasResponse>).data.map(
-                        (disc) => ({ id: disc.id, values: [disc.sigla, disc.curso, String(disc.semestre), String(disc.carga_horaria)] }),
+                        (x) => ({ id: x.id, values: [x.sigla, x.curso, String(x.semestre), String(x.carga_horaria)] }),
+                    );
+                } else if (selectedSection === "turma") {
+                    return (res as AxiosResponse<TurmaResponse>).data.map(
+                        (x) => ({ id: x.id, values: [x.nome] }),
+                    );
+                } else if (selectedSection === "curso") {
+                    return (res as AxiosResponse<CursoResponse>).data.map(
+                        (x) => ({ id: x.id, values: [x.curso, x.tipo, String(x.hora_aula), x.sigla] }),
+                    );
+                } else if (selectedSection === "ambiente") {
+                    return (res as AxiosResponse<AmbienteResponse>).data.map(
+                        (x) => ({ id: x.id, values: [x.sala, String(x.capacidade), x.responsavel, x.periodo] }),
                     );
                 } else {
                     throw new Error("endpoint inválido");
@@ -118,13 +142,15 @@ export function HomePage() {
     }, [selectedSection, isOpen]);
 
     async function saveAction(formData: FormData) {
+        if (!token) return;
+
         const id = selectedEntry?.id;
         const newData = Object.fromEntries(formData.entries());
 
         if (id) {
-            await axios.put(API_URL + "id/" + id, newData, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.put(baseUrl + "/id/" + id, newData, { headers: { Authorization: bearer(token) } });
         } else {
-            await axios.post(API_URL + selectedSection, newData, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.post(baseUrl, newData, { headers: { Authorization: bearer(token) } });
         }
 
         toggleModal(false);
@@ -155,14 +181,19 @@ export function HomePage() {
                 </div>
 
                 <div>
-                    <Button text="Criar" onClick={() => {
-
-
-                        toggleModal(true);
-                    }} />
+                    <Button text="Criar" onClick={() => toggleModal(true)} />
                 </div>
             </div>
-            <TableView titles={EDITABLE_MAP[selectedSection]} content={table} onEntryClick={setSelectedEntry} />
+            <TableView
+                titles={EDITABLE_MAP[selectedSection]}
+                content={table}
+                onEdit={setSelectedEntry}
+                onDelete={({ id }) => {
+                    if (window.confirm("Tem certeza?")) {
+                        axios.delete(baseUrl + "/id/" + id, { headers: { Authorization: bearer(token!) } }).finally(() => window.location.reload());
+                    }
+                }}
+            />
         </>
     );
 }

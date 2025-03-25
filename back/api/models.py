@@ -1,5 +1,6 @@
 from django.db import models
 
+# Professor
 class Cadastro(models.Model):
     ni = models.CharField(max_length=15)
     nome = models.CharField(max_length=255)
@@ -14,7 +15,16 @@ class Disciplina(models.Model):
     carga_horaria = models.IntegerField()
 
 class Ambiente(models.Model):
-    pass
+    sala = models.CharField(max_length=255)
+    capacidade = models.IntegerField()
+    responsavel = models.CharField(max_length=255)
+    periodo = models.CharField(choices=[('M', 'M'), ('T', 'T'), ('N', 'N'), ('S', 'S')], max_length=1)
 
 class Curso(models.Model):
-    pass
+    curso = models.CharField(max_length=255)
+    tipo = models.CharField(choices=[('CAI', 'CAI'), ('CT', 'CT'), ('CS', 'CS'), ('FIC', 'FIC')], max_length=3)
+    hora_aula = models.IntegerField()
+    sigla = models.CharField(max_length=3)
+
+class Turma(models.Model):
+    nome = models.CharField(max_length=255)

@@ -1,5 +1,10 @@
 /// <reference types="vite/client" />
 
+interface LoginResponse {
+    refresh: string;
+    access: string;
+}
+
 interface Professor {
     id: number;
     ni: string;
@@ -21,7 +26,29 @@ interface Disciplina {
 
 type DisciplinasResponse = Disciplina[];
 
-interface LoginResponse {
-    refresh: string;
-    access: string;
+interface Turma {
+    id: number;
+    nome: string;
 }
+
+type TurmaResponse = Turma[];
+
+interface Curso {
+    id: number;
+    curso: string;
+    tipo: "CAI" | "CT" | "CS" | "FIC";
+    hora_aula: number;
+    sigla: string;
+}
+
+type CursoResponse = Curso[];
+
+interface Ambiente {
+    id: number;
+    sala: string;
+    capacidade: number;
+    responsavel: string;
+    periodo: string;
+}
+
+type AmbienteResponse = Ambiente[];
